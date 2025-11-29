@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/dbConfig';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 dotenv.config();
 
@@ -15,6 +16,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(notFound);
+
+app.use(errorHandler);
+
 const startServer = async () => {
   try {
     await connectDatabase();
@@ -24,6 +29,7 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error('Failed to start server:', error);
+    process.exit(1);
   }
 };
 
