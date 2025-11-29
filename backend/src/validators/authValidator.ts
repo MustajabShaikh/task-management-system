@@ -1,42 +1,43 @@
 import { body } from 'express-validator';
 import { UserRole } from '../types/enums.js';
+import { VALIDATION_MESSAGES } from '../constants/constants.js';
 
 export const registerValidation = [
   body('name')
     .trim()
     .notEmpty()
-    .withMessage('Name is required')
+    .withMessage(VALIDATION_MESSAGES.NAME_REQUIRED)
     .isLength({ min: 5, max: 30 })
-    .withMessage('Name must be between 2 and 50 characters'),
+    .withMessage(VALIDATION_MESSAGES.NAME_LENGTH),
   body('email')
     .trim()
     .notEmpty()
-    .withMessage('Email is required')
+    .withMessage(VALIDATION_MESSAGES.EMAIL_REQUIRED)
     .isEmail()
-    .withMessage('Please provide a valid email address')
+    .withMessage(VALIDATION_MESSAGES.EMAIL_INVALID)
     .normalizeEmail(),
   body('password')
     .notEmpty()
-    .withMessage('Password is required')
+    .withMessage(VALIDATION_MESSAGES.PASSWORD_REQUIRED)
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
+    .withMessage(VALIDATION_MESSAGES.PASSWORD_LENGTH)
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .withMessage(VALIDATION_MESSAGES.PASSWORD_STRENGTH),
   body('role')
     .optional()
     .isIn(Object.values(UserRole))
-    .withMessage('Invalid role')
+    .withMessage(VALIDATION_MESSAGES.ROLE_INVALID)
 ];
 
 export const loginValidation = [
   body('email')
     .trim()
     .notEmpty()
-    .withMessage('Email is required')
+    .withMessage(VALIDATION_MESSAGES.EMAIL_REQUIRED)
     .isEmail()
-    .withMessage('Please provide a valid email address')
+    .withMessage(VALIDATION_MESSAGES.EMAIL_INVALID)
     .normalizeEmail(),
   body('password')
     .notEmpty()
-    .withMessage('Password is required')
+    .withMessage(VALIDATION_MESSAGES.PASSWORD_REQUIRED)
 ];

@@ -3,9 +3,11 @@ import { AuthRequest } from '../types/expressTypes';
 import User from '../models/userModel';
 import { IUserRegister, IUserLogin } from '../types/userTypes';
 import { generateToken } from '../utils/jwtUtils';
-import { asyncHandler } from '../middleware/asyncHandler.js';
+import { sendSuccess } from '../utils/responseUtils';
+import { asyncHandler } from '../middleware/asyncHandler';
 import { ConflictError, AuthenticationError, NotFoundError } from '../types/errorTypes';
-import { UserRole } from '../types/enums.js';
+import { UserRole } from '../types/enums';
+import { STATUS_CODE, AUTH_MESSAGES } from '../constants/constants';
 
 export const register = asyncHandler(
   async (req: AuthRequest, res: Response) => {
@@ -13,7 +15,7 @@ export const register = asyncHandler(
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      throw new ConflictError('User with this email already exists');
+      throw new ConflictError(AUTH_MESSAGES.USER_EXISTS);
     }
 
     const user = await User.create({
@@ -29,20 +31,15 @@ export const register = asyncHandler(
       role: user.role
     });
 
-    res.status(201).json({
-      success: true,
-      statusCode: 201,
-      message: 'User registered successfully',
-      data: {
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          createdAt: user.createdAt
-        },
-        token
-      }
+    sendSuccess(res, STATUS_CODE.CREATED, AUTH_MESSAGES.REGISTER_SUCCESS, {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      },
+      token
     });
   }
 );
@@ -54,13 +51,13 @@ export const login = asyncHandler(
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-      throw new AuthenticationError('Invalid email or password');
+      throw new AuthenticationError(AUTH_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const isPasswordMatch = await user.comparePassword(password);
 
     if (!isPasswordMatch) {
-      throw new AuthenticationError('Invalid email or password');
+      throw new AuthenticationError(AUTH_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const token = generateToken({
@@ -69,20 +66,15 @@ export const login = asyncHandler(
       role: user.role
     });
 
-    res.status(200).json({
-      success: true,
-      statusCode: 200,
-      message: 'Login successful',
-      data: {
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          createdAt: user.createdAt
-        },
-        token
-      }
+    sendSuccess(res, STATUS_CODE.OK, AUTH_MESSAGES.LOGIN_SUCCESS, {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      },
+      token
     });
   }
 );
@@ -90,28 +82,23 @@ export const login = asyncHandler(
 export const getMe = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     if (!req.user) {
-      throw new AuthenticationError('User not authenticated');
+      throw new AuthenticationError(AUTH_MESSAGES.NOT_AUTHENTICATED);
     }
 
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError(AUTH_MESSAGES.USER_NOT_FOUND);
     }
 
-    res.status(200).json({
-      success: true,
-      statusCode: 200,
-      message: 'User profile retrieved successfully',
-      data: {
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt
-        }
+    sendSuccess(res, STATUS_CODE.OK, AUTH_MESSAGES.PROFILE_RETRIEVED, {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
       }
     });
   }

@@ -5,6 +5,7 @@ import { AuthenticationError, AuthorizationError } from '../types/errorTypes.js'
 import User from '../models/userModel.js';
 import { UserRole } from '../types/enums.js';
 import { asyncHandler } from './asyncHandler.js';
+import { AUTH_MESSAGES } from '../constants/constants';
 
 /**
  * Protect routes - Require authentication
@@ -21,7 +22,7 @@ export const protect = asyncHandler(
     }
 
     if (!token) {
-      throw new AuthenticationError('Not authorized to access this route');
+      throw new AuthenticationError(AUTH_MESSAGES.NOT_AUTHORIZED);
     }
 
     try {
@@ -29,13 +30,13 @@ export const protect = asyncHandler(
 
       const user = await User.findById(decoded.id).select('-password');
       if (!user) {
-        throw new AuthenticationError('User not found');
+        throw new AuthenticationError(AUTH_MESSAGES.USER_NOT_FOUND);
       }
 
       req.user = user;
       next();
     } catch (error) {
-      throw new AuthenticationError('Not authorized to access this route');
+      throw new AuthenticationError(AUTH_MESSAGES.NOT_AUTHORIZED);
     }
   }
 );
@@ -46,7 +47,7 @@ export const protect = asyncHandler(
 export const authorize = (...roles: UserRole[]) => {
   return (req: AuthRequest, __res: Response, next: NextFunction) => {
     if (!req.user) {
-      throw new AuthenticationError('User not authenticated');
+      throw new AuthenticationError(AUTH_MESSAGES.NOT_AUTHENTICATED);
     }
 
     if (!roles.includes(req.user.role)) {

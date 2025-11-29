@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError, ValidationError, IErrorResponse } from '../types/errorTypes';
+import { STATUS_CODE, GENERAL_MESSAGES, AUTH_MESSAGES } from '../constants/constants.js';
 
 /**
  * Global Error Handler Middleware
@@ -16,14 +17,14 @@ export const errorHandler = (
   console.error('Error:', err);
 
   if (err.name === 'CastError') {
-    const message = 'Invalid ID format';
-    error = new AppError(message, 400);
+    const message = GENERAL_MESSAGES.INVALID_ID;
+    error = new AppError(message, STATUS_CODE.BAD_REQUEST);
   }
 
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
     const message = `${field} already exists`;
-    error = new AppError(message, 409);
+    error = new AppError(message, STATUS_CODE.CONFLICT);
   }
 
   if (err.name === 'ValidationError') {
@@ -31,23 +32,23 @@ export const errorHandler = (
       field: e.path,
       message: e.message
     }));
-    error = new ValidationError('Validation failed', errors);
+    error = new ValidationError(GENERAL_MESSAGES.VALIDATION_FAILED, errors);
   }
 
   if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = new AppError(message, 401);
+    const message = AUTH_MESSAGES.TOKEN_INVALID;
+    error = new AppError(message, STATUS_CODE.UNAUTHORIZED);
   }
 
   if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = new AppError(message, 401);
+    const message = AUTH_MESSAGES.TOKEN_EXPIRED;
+    error = new AppError(message, STATUS_CODE.UNAUTHORIZED);
   }
 
   const errorResponse: IErrorResponse = {
     success: false,
-    statusCode: error.statusCode || 500,
-    message: error.message || 'Internal server error'
+    statusCode: error.statusCode || STATUS_CODE.INTERNAL_SERVER_ERROR,
+    message: error.message || GENERAL_MESSAGES.INTERNAL_ERROR
   };
 
   // Add validation errors if available
@@ -59,7 +60,7 @@ export const errorHandler = (
     errorResponse.stack = err.stack;
   }
 
-  const statusCode = error.statusCode || 500;
+  const statusCode = error.statusCode || STATUS_CODE.INTERNAL_SERVER_ERROR;
 
   res.status(statusCode).json(errorResponse);
 };
@@ -67,7 +68,7 @@ export const errorHandler = (
 /**
  * Handle 404 - Not Found
  */
-export const notFound = (req: Request, res: Response, next: NextFunction): void => {
-  const error = new AppError(`Route ${req.originalUrl} not found`, 404);
+export const notFound = (req: Request, _res: Response, next: NextFunction): void => {
+  const error = new AppError(`Route ${req.originalUrl} not found`, STATUS_CODE.NOT_FOUND);
   next(error);
 };

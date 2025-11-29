@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import { ValidationError } from '../types/errorTypes';
+import { GENERAL_MESSAGES } from '../constants/constants.js';
 
 /**
  * Middleware to handle validation results
@@ -14,7 +15,7 @@ export const validate = (req: Request, __res: Response, next: NextFunction): voi
       message: error.msg
     }));
 
-    throw new ValidationError('Validation failed', formattedErrors);
+    throw new ValidationError(GENERAL_MESSAGES.VALIDATION_FAILED, formattedErrors);
   }
 
   next();
