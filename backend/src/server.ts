@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDatabase } from './config/dbConfig';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes';
+import taskRoutes from './routes/taskRoutes';
 
 dotenv.config();
 
@@ -19,6 +20,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Auth Routes
 app.use('/api/auth', authRoutes);
+
+// Task Routes
+app.use('/api/tasks', taskRoutes);
 
 app.use(notFound);
 

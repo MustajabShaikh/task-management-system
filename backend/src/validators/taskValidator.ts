@@ -1,64 +1,65 @@
 import { body, param, query } from 'express-validator';
-// import { TaskStatus, TaskPriority } from '../types/enums.js';
+import { TaskStatus, TaskPriority } from '../types/enums';
+import { VALIDATION_MESSAGES } from '../constants/constants.js';
 import mongoose from 'mongoose';
 
 export const createTaskValidation = [
   body('title')
     .trim()
     .notEmpty()
-    .withMessage('Title is required')
+    .withMessage(VALIDATION_MESSAGES.TITLE_REQUIRED)
     .isLength({ min: 3, max: 50 })
-    .withMessage('Title must be between 3 and 50 characters'),
+    .withMessage(VALIDATION_MESSAGES.TITLE_LENGTH),
   body('description')
     .trim()
     .notEmpty()
-    .withMessage('Description is required')
+    .withMessage(VALIDATION_MESSAGES.DESCRIPTION_REQUIRED)
     .isLength({ min: 10, max: 1000 })
-    .withMessage('Description must be between 10 and 1000 characters'),
+    .withMessage(VALIDATION_MESSAGES.DESCRIPTION_LENGTH),
   body('priority')
     .notEmpty()
-    .withMessage('Priority is required')
+    .withMessage(VALIDATION_MESSAGES.PRIORITY_REQUIRED)
     .isInt({ min: 0, max: 2 })
-    .withMessage('Priority must be 0 (Low), 1 (Medium), or 2 (High)'),
+    .withMessage(VALIDATION_MESSAGES.PRIORITY_INVALID),
   body('status')
     .optional()
     .isInt({ min: 0, max: 3 })
-    .withMessage('Status must be 0 (TODO), 1 (IN_PROGRESS), 2 (ON_HOLD), or 3 (COMPLETED)'),
+    .withMessage(VALIDATION_MESSAGES.STATUS_INVALID),
   body('dueDate')
     .notEmpty()
-    .withMessage('Due date is required')
+    .withMessage(VALIDATION_MESSAGES.DUE_DATE_REQUIRED)
     .isISO8601()
-    .withMessage('Due date must be a valid date')
+    .withMessage(VALIDATION_MESSAGES.DUE_DATE_INVALID)
     .custom((value) => {
       const date = new Date(value);
       const now = new Date();
       if (date < now) {
-        throw new Error('Due date must be in the future');
+        throw new Error(VALIDATION_MESSAGES.DUE_DATE_FUTURE);
       }
       return true;
     }),
   body('tags')
     .optional()
     .isArray()
-    .withMessage('Tags must be an array')
+    .withMessage(VALIDATION_MESSAGES.TAGS_ARRAY)
     .custom((value) => {
       if (value.length > 10) {
-        throw new Error('Cannot have more than 10 tags');
+        throw new Error(VALIDATION_MESSAGES.TAGS_MAX);
       }
       return true;
     }),
   body('tags.*')
     .optional()
     .isString()
-    .withMessage('Each tag must be a string')
+    .withMessage(VALIDATION_MESSAGES.TAG_STRING)
     .trim()
     .isLength({ min: 1, max: 20 })
-    .withMessage('Each tag must be between 1 and 20 characters'),
+    .withMessage(VALIDATION_MESSAGES.TAG_LENGTH),
   body('assignedTo')
     .optional()
     .custom((value) => {
       if (value && !mongoose.Types.ObjectId.isValid(value)) {
-        throw new Error('Invalid user ID for assignedTo');
+        throw new Error(VALIDATION_MESSAGES.USER_ID_INVALID);
       }
       return true;
     })
@@ -69,46 +70,46 @@ export const updateTaskValidation = [
     .optional()
     .trim()
     .isLength({ min: 3, max: 50 })
-    .withMessage('Title must be between 3 and 50 characters'),
+    .withMessage(VALIDATION_MESSAGES.TITLE_LENGTH),
   body('description')
     .optional()
     .trim()
     .isLength({ min: 10, max: 1000 })
-    .withMessage('Description must be between 10 and 1000 characters'),
+    .withMessage(VALIDATION_MESSAGES.DESCRIPTION_LENGTH),
   body('priority')
     .optional()
     .isInt({ min: 0, max: 2 })
-    .withMessage('Priority must be 0 (Low), 1 (Medium), or 2 (High)'),
+    .withMessage(VALIDATION_MESSAGES.PRIORITY_INVALID),
   body('status')
     .optional()
     .isInt({ min: 0, max: 3 })
-    .withMessage('Status must be 0 (TODO), 1 (IN_PROGRESS), 2 (ON_HOLD), or 3 (COMPLETED)'),
+    .withMessage(VALIDATION_MESSAGES.STATUS_INVALID),
   body('dueDate')
     .optional()
     .isISO8601()
-    .withMessage('Due date must be a valid date'),
+    .withMessage(VALIDATION_MESSAGES.DUE_DATE_INVALID),
   body('tags')
     .optional()
     .isArray()
-    .withMessage('Tags must be an array')
+    .withMessage(VALIDATION_MESSAGES.TAGS_ARRAY)
     .custom((value) => {
       if (value.length > 10) {
-        throw new Error('Cannot have more than 10 tags');
+        throw new Error(VALIDATION_MESSAGES.TAGS_MAX);
       }
       return true;
     }),
   body('tags.*')
     .optional()
     .isString()
-    .withMessage('Each tag must be a string')
+    .withMessage(VALIDATION_MESSAGES.TAG_STRING)
     .trim()
     .isLength({ min: 1, max: 20 })
-    .withMessage('Each tag must be between 1 and 20 characters'),
+    .withMessage(VALIDATION_MESSAGES.TAG_LENGTH),
   body('assignedTo')
     .optional()
     .custom((value) => {
       if (value && !mongoose.Types.ObjectId.isValid(value)) {
-        throw new Error('Invalid user ID for assignedTo');
+        throw new Error(VALIDATION_MESSAGES.USER_ID_INVALID);
       }
       return true;
     })
@@ -118,7 +119,7 @@ export const taskIdValidation = [
   param('id')
     .custom((value) => {
       if (!mongoose.Types.ObjectId.isValid(value)) {
-        throw new Error('Invalid task ID');
+        throw new Error(VALIDATION_MESSAGES.TASK_ID_INVALID);
       }
       return true;
     })
@@ -128,16 +129,16 @@ export const taskQueryValidation = [
   query('status')
     .optional()
     .isInt({ min: 0, max: 3 })
-    .withMessage('Status must be 0, 1, 2, or 3'),
+    .withMessage(VALIDATION_MESSAGES.STATUS_INVALID),
   query('priority')
     .optional()
     .isInt({ min: 0, max: 2 })
-    .withMessage('Priority must be 0, 1, or 2'),
+    .withMessage(VALIDATION_MESSAGES.PRIORITY_INVALID),
   query('assignedTo')
     .optional()
     .custom((value) => {
       if (!mongoose.Types.ObjectId.isValid(value)) {
-        throw new Error('Invalid user ID for assignedTo');
+        throw new Error(VALIDATION_MESSAGES.USER_ID_INVALID);
       }
       return true;
     }),
@@ -145,29 +146,29 @@ export const taskQueryValidation = [
     .optional()
     .custom((value) => {
       if (!mongoose.Types.ObjectId.isValid(value)) {
-        throw new Error('Invalid user ID for createdBy');
+        throw new Error(VALIDATION_MESSAGES.USER_ID_INVALID);
       }
       return true;
     }),
   query('search')
     .optional()
     .isString()
-    .withMessage('Search must be a string')
+    .withMessage(VALIDATION_MESSAGES.SEARCH_STRING)
     .trim(),
   query('page')
     .optional()
     .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer'),
+    .withMessage(VALIDATION_MESSAGES.PAGE_INVALID),
   query('limit')
     .optional()
     .isInt({ min: 1, max: 100 })
-    .withMessage('Limit must be between 1 and 100'),
+    .withMessage(VALIDATION_MESSAGES.LIMIT_INVALID),
   query('sortBy')
     .optional()
     .isIn(['createdAt', 'updatedAt', 'dueDate', 'priority', 'status', 'title'])
-    .withMessage('Invalid sortBy field'),
+    .withMessage(VALIDATION_MESSAGES.SORT_BY_INVALID),
   query('sortOrder')
     .optional()
     .isIn(['asc', 'desc'])
-    .withMessage('Sort order must be asc or desc')
+    .withMessage(VALIDATION_MESSAGES.SORT_ORDER_INVALID)
 ];
