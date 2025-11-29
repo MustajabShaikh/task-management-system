@@ -3,6 +3,7 @@
  */
 export interface IErrorResponse {
   success: false;
+  statusCode: number;
   message: string;
   errors?: any[];
   stack?: string;

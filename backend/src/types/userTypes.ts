@@ -37,7 +37,7 @@ export interface IUserLogin {
  * JWT Payload
  */
 export interface IJWTPayload {
-  id: string;
+  id: Types.ObjectId;
   email: string;
   role: UserRole;
 }
