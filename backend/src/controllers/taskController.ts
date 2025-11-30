@@ -1,14 +1,14 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types/expressTypes';
+import { ITaskCreate, ITaskUpdate } from '../types/taskTypes';
+import { NotFoundError, AuthorizationError } from '../types/errorTypes';
 import Task from '../models/taskModel';
 import User from '../models/userModel';
-import { ITaskCreate, ITaskUpdate, ITaskFilters } from '../types/taskTypes';
 import { asyncHandler } from '../middleware/asyncHandler.js';
-import { NotFoundError, AuthorizationError, ValidationError } from '../types/errorTypes';
 import { UserRole, TaskStatus } from '../types/enums.js';
-import { STATUS_CODE, TASK_MESSAGES } from '../constants/constants.js';
+import { STATUS_CODE, TASK_MESSAGES, PAGINATION } from '../constants/constants';
 import { sendSuccess } from '../utils/responseUtils';
-import { PAGINATION } from '../constants/constants.js';
+import { emitTaskCreated, emitTaskUpdated, emitTaskDeleted, emitTaskStatusChanged } from '../config/socket';
 
 export const createTask = asyncHandler(
   async (req: AuthRequest, res: Response) => {
@@ -32,13 +32,14 @@ export const createTask = asyncHandler(
       await task.populate('assignedTo', 'name email role');
     }
 
+    emitTaskCreated(task);
+
     sendSuccess(res, STATUS_CODE.CREATED, TASK_MESSAGES.CREATED, { task });
   }
 );
 
 export const getTasks = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    const user = req.user!;
     const {
       status,
       priority,
@@ -147,12 +148,19 @@ export const updateTask = asyncHandler(
       }
     }
 
+    const oldStatus = task.status;
     Object.assign(task, updateData);
     await task.save();
 
     await task.populate('createdBy', 'name email role');
     if (task.assignedTo) {
       await task.populate('assignedTo', 'name email role');
+    }
+
+    emitTaskUpdated(task, user._id);
+    
+    if (updateData.status !== undefined && oldStatus !== updateData.status) {
+      emitTaskStatusChanged(task, oldStatus, updateData.status, user._id);
     }
 
     sendSuccess(res, STATUS_CODE.OK, TASK_MESSAGES.UPDATED, { task });
@@ -177,6 +185,8 @@ export const deleteTask = asyncHandler(
     }
 
     await task.deleteOne();
+
+    emitTaskDeleted(id, user._id);
 
     sendSuccess(res, STATUS_CODE.OK, TASK_MESSAGES.DELETED, { taskId: id });
   }

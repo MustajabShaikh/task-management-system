@@ -88,3 +88,14 @@ export const PAGINATION = {
   DEFAULT_LIMIT: 10,
   MAX_LIMIT: 100
 } as const;
+
+export const SOCKET_EVENTS = {
+  CONNECTION: 'connection',
+  DISCONNECT: 'disconnect',
+  TASK_CREATED: 'task:created',
+  TASK_UPDATED: 'task:updated',
+  TASK_DELETED: 'task:deleted',
+  TASK_ASSIGNED: 'task:assigned',
+  TASK_STATUS_CHANGED: 'task:status_changed',
+  ERROR: 'error'
+} as const;
