@@ -3,15 +3,9 @@ import { AuthProvider, SocketProvider } from '@/contexts';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PublicRoute from '@/components/PublicRoute';
 import MainLayout from '@/layouts/MainLayout';
-import { LoginPage, RegisterPage, DashboardPage, TasksPage } from '@/pages';
+import { LoginPage, RegisterPage, DashboardPage, TasksPage, ProfilePage } from '@/pages';
 import { ROUTES } from '@/constants/constants';
 import { Box, Typography } from '@mui/material';
-
-const ProfilePage = () => (
-  <Box>
-    <Typography variant="h4">Profile Page (Coming Soon)</Typography>
-  </Box>
-);
 
 function App() {
   return (
