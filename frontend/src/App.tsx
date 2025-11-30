@@ -2,13 +2,20 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, SocketProvider } from '@/contexts';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PublicRoute from '@/components/PublicRoute';
-import { LoginPage, RegisterPage } from '@/pages';
+import MainLayout from '@/layouts/MainLayout';
+import { LoginPage, RegisterPage, DashboardPage } from '@/pages';
 import { ROUTES } from '@/constants/constants';
 import { Box, Typography } from '@mui/material';
 
-const DashboardPage = () => (
-  <Box sx={{ p: 4 }}>
-    <Typography variant="h4">Dashboard (Coming Soon)</Typography>
+const TasksPage = () => (
+  <Box>
+    <Typography variant="h4">Tasks Page (Coming Soon)</Typography>
+  </Box>
+);
+
+const ProfilePage = () => (
+  <Box>
+    <Typography variant="h4">Profile Page (Coming Soon)</Typography>
   </Box>
 );
 
@@ -26,11 +33,13 @@ function App() {
             <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
           </Route>
 
-          {/* Protected routes - require authentication */}
+          {/* Protected routes with layout */}
           <Route element={<ProtectedRoute />}>
-            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-            <Route path={ROUTES.TASKS} element={<DashboardPage />} />
-            <Route path={ROUTES.PROFILE} element={<DashboardPage />} />
+            <Route element={<MainLayout />}>
+              <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+              <Route path={ROUTES.TASKS} element={<TasksPage />} />
+              <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+            </Route>
           </Route>
 
           {/* 404 - Not found */}
