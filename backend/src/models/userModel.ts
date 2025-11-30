@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { IUser } from '../types/userTypes';
-import { UserRole } from '../types/enums.js';
+import { UserRole } from '../types/enums';
 
 const userSchema = new Schema<IUser>(
   {

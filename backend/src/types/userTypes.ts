@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { UserRole } from './enums.js';
+import { UserRole } from './enums';
 
 /**
  * User Interface

@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { TaskStatus, TaskPriority } from './enums.js';
+import { TaskStatus, TaskPriority } from './enums';
 
 /**
  * Task Interface

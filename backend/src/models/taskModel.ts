@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { ITask } from '../types/taskTypes';
-import { TaskStatus, TaskPriority } from '../types/enums.js';
+import { TaskStatus, TaskPriority } from '../types/enums';
 
 const taskSchema = new Schema<ITask>(
   {

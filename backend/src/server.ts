@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/dbconfig';
-import { initializeSocket } from './config/socket.js';
+import { initializeSocket } from './config/socket';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';

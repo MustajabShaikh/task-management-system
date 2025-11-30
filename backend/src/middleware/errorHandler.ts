@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError, ValidationError, IErrorResponse } from '../types/errorTypes';
-import { STATUS_CODE, GENERAL_MESSAGES, AUTH_MESSAGES } from '../constants/constants.js';
+import { STATUS_CODE, GENERAL_MESSAGES, AUTH_MESSAGES } from '../constants/constants';
 
 /**
  * Global Error Handler Middleware

@@ -1,10 +1,10 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../types/expressTypes';
-import { verifyToken } from '../utils/jwtUtils.js';
-import { AuthenticationError, AuthorizationError } from '../types/errorTypes.js';
-import User from '../models/userModel.js';
-import { UserRole } from '../types/enums.js';
-import { asyncHandler } from './asyncHandler.js';
+import { AuthenticationError, AuthorizationError } from '../types/errorTypes';
+import { UserRole } from '../types/enums';
+import User from '../models/userModel';
+import { verifyToken } from '../utils/jwtUtils';
+import { asyncHandler } from './asyncHandler';
 import { AUTH_MESSAGES } from '../constants/constants';
 
 /**

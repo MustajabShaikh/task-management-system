@@ -15,7 +15,7 @@ import {
 } from '../validators/taskValidator';
 import { validate } from '../middleware/validateMiddleware';
 import { protect, authorize } from '../middleware/authMiddleware';
-import { UserRole } from '../types/enums.js';
+import { UserRole } from '../types/enums';
 
 const router = express.Router();
 

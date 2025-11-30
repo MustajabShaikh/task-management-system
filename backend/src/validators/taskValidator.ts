@@ -1,6 +1,5 @@
 import { body, param, query } from 'express-validator';
-import { TaskStatus, TaskPriority } from '../types/enums';
-import { VALIDATION_MESSAGES } from '../constants/constants.js';
+import { VALIDATION_MESSAGES } from '../constants/constants';
 import mongoose from 'mongoose';
 
 export const createTaskValidation = [

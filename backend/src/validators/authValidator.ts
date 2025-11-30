@@ -1,6 +1,6 @@
 import { body } from 'express-validator';
-import { UserRole } from '../types/enums.js';
-import { VALIDATION_MESSAGES } from '../constants/constants.js';
+import { UserRole } from '../types/enums';
+import { VALIDATION_MESSAGES } from '../constants/constants';
 
 export const registerValidation = [
   body('name')

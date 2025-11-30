@@ -1,12 +1,12 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types/expressTypes';
-import User from '../models/userModel';
 import { IUserRegister, IUserLogin } from '../types/userTypes';
+import { ConflictError, AuthenticationError, NotFoundError } from '../types/errorTypes';
+import { UserRole } from '../types/enums';
+import User from '../models/userModel';
 import { generateToken } from '../utils/jwtUtils';
 import { sendSuccess } from '../utils/responseUtils';
 import { asyncHandler } from '../middleware/asyncHandler';
-import { ConflictError, AuthenticationError, NotFoundError } from '../types/errorTypes';
-import { UserRole } from '../types/enums';
 import { STATUS_CODE, AUTH_MESSAGES } from '../constants/constants';
 
 export const register = asyncHandler(

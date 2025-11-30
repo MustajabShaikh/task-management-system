@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import { ValidationError } from '../types/errorTypes';
-import { GENERAL_MESSAGES } from '../constants/constants.js';
+import { GENERAL_MESSAGES } from '../constants/constants';
 
 /**
  * Middleware to handle validation results
