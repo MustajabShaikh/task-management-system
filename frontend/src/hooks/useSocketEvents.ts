@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSocket } from '@/contexts';
 import { toast } from 'react-toastify';
 import {
@@ -35,13 +35,23 @@ export const useSocketEvents = (handlers: SocketEventHandlers): void => {
   } = useSocket();
 
   const { showNotifications = true } = handlers;
+  
+  const shownNotifications = useRef(new Set<string>());
 
   useEffect(() => {
     if (!isConnected) return;
 
+    // Task Created Handler
     const handleTaskCreated = (data: ISocketTaskCreatedData) => {
-      if (showNotifications) {
+      const notificationKey = `created-${data.data._id}-${data.timestamp}`;
+      if (showNotifications && !shownNotifications.current.has(notificationKey)) {
         toast.info(`New task created: ${data.data.title}`);
+        shownNotifications.current.add(notificationKey);
+        
+        // Clean up old notifications after 5 seconds
+        setTimeout(() => {
+          shownNotifications.current.delete(notificationKey);
+        }, 5000);
       }
       
       if (handlers.onTaskCreated) {
@@ -49,9 +59,16 @@ export const useSocketEvents = (handlers: SocketEventHandlers): void => {
       }
     };
 
+    // Task Updated Handler
     const handleTaskUpdated = (data: ISocketTaskUpdatedData) => {
-      if (showNotifications) {
+      const notificationKey = `updated-${data.data._id}-${data.timestamp}`;
+      if (showNotifications && !shownNotifications.current.has(notificationKey)) {
         toast.info(`Task updated: ${data.data.title}`);
+        shownNotifications.current.add(notificationKey);
+        
+        setTimeout(() => {
+          shownNotifications.current.delete(notificationKey);
+        }, 5000);
       }
       
       if (handlers.onTaskUpdated) {
@@ -59,9 +76,16 @@ export const useSocketEvents = (handlers: SocketEventHandlers): void => {
       }
     };
 
+    // Task Deleted Handler
     const handleTaskDeleted = (data: ISocketTaskDeletedData) => {
-      if (showNotifications) {
+      const notificationKey = `deleted-${data.data.taskId}-${data.timestamp}`;
+      if (showNotifications && !shownNotifications.current.has(notificationKey)) {
         toast.warning('A task was deleted');
+        shownNotifications.current.add(notificationKey);
+        
+        setTimeout(() => {
+          shownNotifications.current.delete(notificationKey);
+        }, 5000);
       }
       
       if (handlers.onTaskDeleted) {
@@ -69,9 +93,16 @@ export const useSocketEvents = (handlers: SocketEventHandlers): void => {
       }
     };
 
+    // Task Assigned Handler
     const handleTaskAssigned = (data: ISocketTaskAssignedData) => {
-      if (showNotifications) {
+      const notificationKey = `assigned-${data.data._id}-${data.timestamp}`;
+      if (showNotifications && !shownNotifications.current.has(notificationKey)) {
         toast.success(`Task assigned to you: ${data.data.title}`);
+        shownNotifications.current.add(notificationKey);
+        
+        setTimeout(() => {
+          shownNotifications.current.delete(notificationKey);
+        }, 5000);
       }
       
       if (handlers.onTaskAssigned) {
@@ -79,11 +110,18 @@ export const useSocketEvents = (handlers: SocketEventHandlers): void => {
       }
     };
 
+    // Task Status Changed Handler
     const handleTaskStatusChanged = (data: ISocketTaskStatusChangedData) => {
-      if (showNotifications) {
+      const notificationKey = `status-${data.data.task._id}-${data.timestamp}`;
+      if (showNotifications && !shownNotifications.current.has(notificationKey)) {
         const oldStatus = getStatusLabel(data.data.oldStatus);
         const newStatus = getStatusLabel(data.data.newStatus);
         toast.info(`Task status changed: ${oldStatus} → ${newStatus}`);
+        shownNotifications.current.add(notificationKey);
+        
+        setTimeout(() => {
+          shownNotifications.current.delete(notificationKey);
+        }, 5000);
       }
       
       if (handlers.onTaskStatusChanged) {
@@ -91,6 +129,7 @@ export const useSocketEvents = (handlers: SocketEventHandlers): void => {
       }
     };
 
+    // Subscribe to events
     if (handlers.onTaskCreated) {
       socketOnTaskCreated(handleTaskCreated);
     }
@@ -107,6 +146,7 @@ export const useSocketEvents = (handlers: SocketEventHandlers): void => {
       socketOnTaskStatusChanged(handleTaskStatusChanged);
     }
 
+    // Cleanup - Unsubscribe from events
     return () => {
       offTaskCreated(handleTaskCreated);
       offTaskUpdated(handleTaskUpdated);

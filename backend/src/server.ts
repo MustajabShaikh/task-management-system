@@ -7,6 +7,7 @@ import { initializeSocket } from './config/socket';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config();
 
@@ -26,6 +27,9 @@ app.use('/api/auth', authRoutes);
 
 // Task Routes
 app.use('/api/tasks', taskRoutes);
+
+// User Routes
+app.use('/api/users', userRoutes);
 
 // 404 Handler
 app.use(notFound);

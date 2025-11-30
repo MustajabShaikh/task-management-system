@@ -32,6 +32,7 @@ export const initializeSocket = (server: HTTPServer): SocketIOServer => {
 
       const decoded = verifyToken(token);
       socket.user = decoded;
+      socket.data.userId = decoded.id;
       
       next();
     } catch (error) {
@@ -42,7 +43,6 @@ export const initializeSocket = (server: HTTPServer): SocketIOServer => {
   io.on(SOCKET_EVENTS.CONNECTION, (socket: AuthenticatedSocket) => {
     console.log(`User connected: ${socket.user?.email}`);
 
-    // Join user to their own room for targeted messages
     if (socket.user) {
       socket.join(`user:${socket.user.id}`);
       console.log(`User ${socket.user.email} joined room: user:${socket.user.id}`);
@@ -67,18 +67,23 @@ export const getIO = (): SocketIOServer => {
   return io;
 };
 
-export const emitTaskCreated = (task: any) => {
+export const emitTaskCreated = (task: any, createdBy: Types.ObjectId) => {
   const io = getIO();
   
-  // Broadcast to all connected users
-  io.emit(SOCKET_EVENTS.TASK_CREATED, {
+  const payload = {
     event: 'task_created',
     data: task,
     timestamp: moment().toISOString()
+  };
+
+  io.sockets.sockets.forEach((socket: AuthenticatedSocket) => {
+    if (socket.data.userId !== createdBy.toString()) {
+      socket.emit(SOCKET_EVENTS.TASK_CREATED, payload);
+    }
   });
 
-  // If task is assigned, send targeted notification
-  if (task.assignedTo) {
+  // If task is assigned to someone other than creator, send targeted notification
+  if (task.assignedTo && (task.assignedTo._id || task.assignedTo).toString() !== createdBy.toString()) {
     io.to(`user:${task.assignedTo._id || task.assignedTo}`).emit(SOCKET_EVENTS.TASK_ASSIGNED, {
       event: 'task_assigned',
       data: task,
@@ -90,38 +95,24 @@ export const emitTaskCreated = (task: any) => {
 export const emitTaskUpdated = (task: any, updatedBy: Types.ObjectId) => {
   const io = getIO();
   
-  io.emit(SOCKET_EVENTS.TASK_UPDATED, {
+  const payload = {
     event: 'task_updated',
     data: task,
     updatedBy,
     timestamp: moment().toISOString()
+  };
+
+  io.sockets.sockets.forEach((socket: AuthenticatedSocket) => {
+    if (socket.data.userId !== updatedBy.toString()) {
+      socket.emit(SOCKET_EVENTS.TASK_UPDATED, payload);
+    }
   });
-
-  // Send to task creator
-  if (task.createdBy) {
-    io.to(`user:${task.createdBy._id || task.createdBy}`).emit(SOCKET_EVENTS.TASK_UPDATED, {
-      event: 'task_updated',
-      data: task,
-      updatedBy,
-      timestamp: moment().toISOString()
-    });
-  }
-
-  // Send to assigned user
-  if (task.assignedTo) {
-    io.to(`user:${task.assignedTo._id || task.assignedTo}`).emit(SOCKET_EVENTS.TASK_UPDATED, {
-      event: 'task_updated',
-      data: task,
-      updatedBy,
-      timestamp: moment().toISOString()
-    });
-  }
 };
 
 export const emitTaskStatusChanged = (task: any, oldStatus: number, newStatus: number, updatedBy: Types.ObjectId) => {
   const io = getIO();
   
-  io.emit(SOCKET_EVENTS.TASK_STATUS_CHANGED, {
+  const payload = {
     event: 'task_status_changed',
     data: {
       task,
@@ -130,18 +121,30 @@ export const emitTaskStatusChanged = (task: any, oldStatus: number, newStatus: n
     },
     updatedBy,
     timestamp: moment().toISOString()
+  };
+
+  io.sockets.sockets.forEach((socket: AuthenticatedSocket) => {
+    if (socket.data.userId !== updatedBy.toString()) {
+      socket.emit(SOCKET_EVENTS.TASK_STATUS_CHANGED, payload);
+    }
   });
 };
 
 export const emitTaskDeleted = (taskId: string, deletedBy: Types.ObjectId) => {
   const io = getIO();
   
-  io.emit(SOCKET_EVENTS.TASK_DELETED, {
+  const payload = {
     event: 'task_deleted',
     data: {
       taskId
     },
     deletedBy,
     timestamp: moment().toISOString()
+  };
+
+  io.sockets.sockets.forEach((socket: AuthenticatedSocket) => {
+    if (socket.data.userId !== deletedBy.toString()) {
+      socket.emit(SOCKET_EVENTS.TASK_DELETED, payload);
+    }
   });
 };

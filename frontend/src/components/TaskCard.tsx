@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -8,23 +8,29 @@ import {
   IconButton,
   Tooltip,
   Avatar,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Edit, Delete, Person, CalendarToday } from '@mui/icons-material';
-import { ITask, getStatusLabel, getPriorityLabel } from '@/types';
+import { toast } from 'react-toastify';
+import { ITask, getStatusLabel, getPriorityLabel, TaskStatus } from '@/types';
 import { STATUS_COLORS, PRIORITY_COLORS } from '@/constants/constants';
-import { formatDate, isOverdue } from '@/utils';
+import { formatDate, isOverdue, handleApiError } from '@/utils';
 import { useAuth } from '@/contexts';
 import { usePermissions } from '@/hooks';
+import { taskApi } from '@/api';
 
 interface TaskCardProps {
   task: ITask;
   onEdit?: (task: ITask) => void;
   onDelete?: (taskId: string) => void;
+  onStatusUpdate?: () => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusUpdate }) => {
   const { user } = useAuth();
   const { canEditTask, canDeleteTask, isAdmin } = usePermissions();
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const isOwner = typeof task.createdBy === 'object' 
     ? task.createdBy._id === user?._id 
@@ -36,11 +42,27 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
 
   const canEdit = isAdmin || (canEditTask && (isOwner || isAssigned));
   const canDelete = isAdmin || (canDeleteTask && isOwner);
+  const canUpdateStatus = isAssigned; // Assigned users can update status
 
   const assignedUser = typeof task.assignedTo === 'object' ? task.assignedTo : null;
   const createdUser = typeof task.createdBy === 'object' ? task.createdBy : null;
 
   const isDue = isOverdue(task.dueDate);
+
+  const handleStatusChange = async (newStatus: TaskStatus) => {
+    try {
+      setUpdatingStatus(true);
+      await taskApi.updateTask(task._id, { status: newStatus });
+      toast.success('Status updated successfully!');
+      if (onStatusUpdate) {
+        onStatusUpdate();
+      }
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   return (
     <Card
@@ -90,16 +112,51 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
           )}
         </Box>
 
-        {/* Status and Priority */}
+        {/* Status - Editable for assigned users */}
+        {canUpdateStatus ? (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+              Status
+            </Typography>
+            <Select
+              value={task.status}
+              onChange={(e) => handleStatusChange(Number(e.target.value) as TaskStatus)}
+              disabled={updatingStatus}
+              size="small"
+              fullWidth
+              sx={{
+                backgroundColor: STATUS_COLORS[task.status],
+                color: 'white',
+                '& .MuiSelect-icon': { color: 'white' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+              }}
+            >
+              <MenuItem value={TaskStatus.TODO}>{getStatusLabel(TaskStatus.TODO)}</MenuItem>
+              <MenuItem value={TaskStatus.IN_PROGRESS}>{getStatusLabel(TaskStatus.IN_PROGRESS)}</MenuItem>
+              <MenuItem value={TaskStatus.ON_HOLD}>{getStatusLabel(TaskStatus.ON_HOLD)}</MenuItem>
+              <MenuItem value={TaskStatus.COMPLETED}>{getStatusLabel(TaskStatus.COMPLETED)}</MenuItem>
+            </Select>
+          </Box>
+        ) : (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+              Status
+            </Typography>
+            <Chip
+              label={getStatusLabel(task.status)}
+              size="small"
+              sx={{
+                backgroundColor: STATUS_COLORS[task.status],
+                color: 'white',
+              }}
+            />
+          </Box>
+        )}
+
+        {/* Priority */}
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-          <Chip
-            label={getStatusLabel(task.status)}
-            size="small"
-            sx={{
-              backgroundColor: STATUS_COLORS[task.status],
-              color: 'white',
-            }}
-          />
           <Chip
             label={getPriorityLabel(task.priority)}
             size="small"

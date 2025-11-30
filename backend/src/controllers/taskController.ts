@@ -32,7 +32,7 @@ export const createTask = asyncHandler(
       await task.populate('assignedTo', 'name email role');
     }
 
-    emitTaskCreated(task);
+    emitTaskCreated(task,user._id);
 
     sendSuccess(res, STATUS_CODE.CREATED, TASK_MESSAGES.CREATED, { task });
   }

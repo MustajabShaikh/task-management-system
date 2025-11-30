@@ -30,11 +30,13 @@ const TasksPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const { canCreateTask } = usePermissions();
 
+  // Modal states
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(null);
 
+  // Fetch tasks
   useEffect(() => {
     fetchTasks();
   }, [search, statusFilter, priorityFilter, page]);
@@ -63,16 +65,20 @@ const TasksPage: React.FC = () => {
     }
   };
 
+  // Real-time updates
   useSocketEvents({
     onTaskCreated: (data) => {
+      // Add new task to the beginning of the list
       setTasks((prev) => [data.data, ...prev]);
     },
     onTaskUpdated: (data) => {
+      // Update existing task
       setTasks((prev) =>
         prev.map((task) => (task._id === data.data._id ? data.data : task))
       );
     },
     onTaskDeleted: (data) => {
+      // Remove deleted task
       setTasks((prev) => prev.filter((task) => task._id !== data.data.taskId));
     },
     showNotifications: true,
@@ -80,7 +86,7 @@ const TasksPage: React.FC = () => {
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
-    setPage(1); 
+    setPage(1); // Reset to first page
   };
 
   const handleStatusChange = (value: TaskStatus | '') => {
@@ -189,6 +195,7 @@ const TasksPage: React.FC = () => {
                   task={task}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onStatusUpdate={fetchTasks}
                 />
               </Grid>
             ))}
